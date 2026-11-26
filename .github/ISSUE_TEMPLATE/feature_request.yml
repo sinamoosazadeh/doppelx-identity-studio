@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest a scoped, authorised-QA improvement
+title: "feature: "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Requests must fit the offline-first, authorised-QA boundary in README.md
+        and ADR-001. Do not request account harvesting, stealth/evasion, or
+        third-party credential/network automation features.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security and privacy impact
+      description: Explain data handling, network use, and how the change remains testable.
+    validations:
+      required: true
