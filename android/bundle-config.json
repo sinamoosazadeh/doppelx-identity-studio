@@ -1,0 +1,8 @@
+{
+  "compression": {
+    "uncompressedGlob": ["assets/js/*.js", "assets/css/*.css"]
+  },
+  "optimizations": {
+    "splitsConfig": { "splitDimension": [{ "value": "ABI", "negate": true }, { "value": "SCREEN_DENSITY", "negate": false }, { "value": "LANGUAGE", "negate": true }] }
+  }
+}

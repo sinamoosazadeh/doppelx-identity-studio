@@ -1,0 +1,29 @@
+{
+  "name": "doppelx-identity-studio",
+  "version": "3.2.1",
+  "private": true,
+  "description": "Offline-first coherent profile modelling and QA tooling for authorised browser testing.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "sync:runtime": "node scripts/sync-runtime.mjs",
+    "sync:runtime:check": "node scripts/sync-runtime.mjs --check",
+    "lint:syntax": "node scripts/check-syntax.mjs",
+    "verify:source": "node scripts/sync-runtime.mjs --check && node scripts/check-syntax.mjs && python3 scripts/verify-release.py",
+    "build:web": "node web/tools/build.js",
+    "test:web:core": "node web/tools/test-core.mjs",
+    "test:web:ui": "node web/tools/test-ui.mjs",
+    "build:preview": "node android/tools/build-preview.mjs",
+    "test:android": "node android/tools/test-suite.mjs",
+    "test:android:preview": "node android/tools/test-suite.mjs preview",
+    "test": "npm run verify:source && npm run test:web:core && npm run build:web && npm run test:web:ui && npm run build:preview && npm run test:android && npm run test:android:preview",
+    "archive:source": "bash scripts/create-source-archive.sh"
+  },
+  "devDependencies": {
+    "jsdom": "28.0.0",
+    "playwright": "1.57.0"
+  }
+}

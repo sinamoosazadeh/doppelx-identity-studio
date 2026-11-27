@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>DOPPEL Runtime</title>
+<style>
+  :root{--bg:#0a0c10;--panel:#11151c;--panel2:#161b23;--line:#242c38;--txt:#e8eef6;--txt2:#a9b6c7;--muted:#6f7d8f;--accent:#4f8cff;--ok:#35c48a;--warn:#f0b429;--bad:#f4566a}
+  *{box-sizing:border-box}
+  body{margin:0;width:360px;background:var(--bg);color:var(--txt);font:13px/1.7 -apple-system,"Segoe UI",Roboto,"Vazirmatn",sans-serif;padding:16px}
+  h1{font-size:14px;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+  .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#4f8cff,#7b5cff);display:grid;place-items:center;font-size:13px}
+  .sub{color:var(--muted);font-size:11px;margin-bottom:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:10px}
+  .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:11.5px;border-bottom:1px dashed var(--line)}
+  .row:last-child{border:0}
+  .row span{color:var(--muted)}
+  .row b{font-weight:600;text-align:left;direction:ltr;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .flag{font-size:18px}
+  .pname{font-size:14px;font-weight:700;margin-bottom:2px}
+  .pmeta{color:var(--muted);font-size:11px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font:inherit;font-weight:600;cursor:pointer;margin-bottom:6px}
+  .btn.primary{background:linear-gradient(180deg,#4f8cff,#3a74e0);border-color:#5b93ff;color:#fff}
+  .btn.ghost{background:transparent;color:var(--txt2)}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:10.5px;font-weight:700}
+  .badge.on{background:rgba(53,196,138,.12);color:var(--ok)}
+  .badge.off{background:rgba(240,180,41,.12);color:var(--warn)}
+  .dot{width:7px;height:7px;border-radius:50%}
+  .dot.on{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+  .dot.off{background:var(--warn)}
+  textarea{width:100%;height:120px;background:#0b0e13;border:1px solid var(--line);border-radius:8px;color:var(--txt2);font:11px/1.5 ui-monospace,Menlo,monospace;padding:8px;direction:ltr;resize:vertical;outline:none}
+  .hint{color:var(--muted);font-size:10.5px;line-height:1.8;margin-top:6px}
+  .err{color:var(--bad);font-size:11px;margin-top:6px;display:none}
+  .steps{color:var(--txt2);font-size:11px;line-height:2;padding-right:16px;margin:6px 0 0}
+</style>
+</head>
+<body>
+  <h1><span class="logo">◈</span> DOPPEL Runtime</h1>
+  <div class="sub">لایهٔ اجرای هویت منسجم — روی همهٔ سایت‌ها</div>
+
+  <div id="content"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

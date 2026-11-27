@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Source quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify source boundary and syntax
+        run: npm run verify:source
+
+      - name: Test web core
+        run: npm run test:web:core
+
+      - name: Build and test web companion UI
+        run: |
+          npm run build:web
+          npm run test:web:ui
+
+  android-preview:
+    name: Android asset and preview E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Android preview
+        run: npm run build:preview
+
+      - name: Run Android asset E2E
+        run: npm run test:android
+
+      - name: Run generated preview E2E
+        run: npm run test:android:preview
+
+      - name: Upload generated QA previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-previews
+          if-no-files-found: warn
+          path: |
+            web/doppel.html
+            android/dist/doppelx-preview.html
+          retention-days: 7

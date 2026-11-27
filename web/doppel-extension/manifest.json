@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "DOPPEL X — Profile Runtime v3.2.1",
+  "version": "3.2.1",
+  "description": "Applies a coherent DOPPEL X identity profile (UA, Client Hints, Accept-Language, DST-accurate timezone, screen, WebGL, idempotent canvas/audio noise, Web Worker sync, WebRTC IP hardening, HTTP/SOCKS proxy).",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "proxy",
+    "storage",
+    "privacy",
+    "webRequest",
+    "webRequestAuthProvider",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "DOPPEL X Runtime v3.2.1",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "128": "icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "spoof.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "world": "ISOLATED"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "spoof.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
