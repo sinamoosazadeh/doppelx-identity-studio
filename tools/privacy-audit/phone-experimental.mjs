@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { buildRuntimeData } from './runtime-boundary.mjs';
 import { runRealmAudit } from './realm-audit.mjs';
 import { prepareModuleOrder } from './module-order.mjs';
+import { runHeaderAudit } from './header-audit.mjs';
 import { prepareLegacySource, sha256, PHONE_RUNTIME_SHA256 } from './legacy-adapter.mjs';
 
 const args = process.argv.slice(2);
@@ -38,6 +39,13 @@ const executable = prepared
     await context.close();
     throw new Error('Realm audit failed or incomplete; see REALM GATES');
   }
+  if (process.argv.includes('--headers')) {
+    const headerGate = await runHeaderAudit(page);
+    if (headerGate.status !== 'PASS') {
+      await context.close();
+      throw new Error('Header measurement failed or incomplete; see SERVER HEADER AUDIT');
+    }
+  }
 ` + auditMarker);
 // Never use or copy the established session directories. This separate persistent
 // root starts with empty browser storage; repeated experimental runs retain theirs.
@@ -45,6 +53,6 @@ process.env.SESS_ROOT = path.join(home, 'dx-experimental-sessions');
 console.log('EXPERIMENTAL: separate browser storage; original files are unchanged.');
 console.log('Credential projection + module initialization order; globals and model defects remain.');
 const require = createRequire(launcher);
-new Function('require', 'buildRuntimeData', 'runRealmAudit', 'prepareModuleOrder', executable)(
-  require, buildRuntimeData, runRealmAudit, prepareModuleOrder,
+new Function('require', 'buildRuntimeData', 'runRealmAudit', 'prepareModuleOrder', 'runHeaderAudit', executable)(
+  require, buildRuntimeData, runRealmAudit, prepareModuleOrder, runHeaderAudit,
 );

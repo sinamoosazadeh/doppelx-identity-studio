@@ -95,3 +95,25 @@ and verify ordered dynamic-import observation. They do NOT simulate Android work
 loading, browser security policies or the complete runtime installation. Run the
 same four-realm phone audit to evaluate the attempted fix. Global markers remain
 and cannot be treated as undetectable. Model 156/native engine 158 remains unresolved.
+
+## v4 optional server-header measurement
+
+User-run v3 passed selected parity and named credential-object gates in the four
+realms. This does not remove the duplicated Chrome brand or native/model version
+mismatch and is not an all-realm or no-leak certification.
+
+Invoke v4 with `--headers` to navigate the existing test page to a nonce-tagged
+https://httpbin.org/anything/doppelx-audit request. It checks the fresh HTTPS echo
+and compares selected received low-entropy headers with JavaScript on that page.
+Only approved headers are logged; cookie/authorization headers are removed from
+the diagnostic request via a temporary route, removed afterwards. No identifying
+profile ID is put in the request URL. The third party sees the exit and browser
+request metadata. Intermediaries/echo infrastructure may transform headers; this
+is evidence of the observed path, not necessarily a browser-only defect.
+
+High-entropy headers are printed only if present, not requested via a controlled
+Accept-CH server. They are NOT included in the low-entropy comparison gate.
+Missing echo/headers and unexpected responses are UNKNOWN, not PASS. A non-PASS
+header gate closes the experimental browser. It does not rotate the proxy, change
+credentials, repair brands or modify persistent profiles. No TLS fingerprint,
+HTTP/2 fingerprint, WebRTC or storage isolation verdict follows from this probe.
