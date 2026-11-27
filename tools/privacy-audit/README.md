@@ -117,3 +117,27 @@ Missing echo/headers and unexpected responses are UNKNOWN, not PASS. A non-PASS
 header gate closes the experimental browser. It does not rotate the proxy, change
 credentials, repair brands or modify persistent profiles. No TLS fingerprint,
 HTTP/2 fingerprint, WebRTC or storage isolation verdict follows from this probe.
+
+## v5 session-brand repair and request observations
+
+User-run v4 confirmed UA/mobile/platform agreement at the echo endpoint, but strict
+language-list equality and brand-list equality failed. The original launcher builds
+Sec-CH-UA from only the first two entries, while JS used four (including duplicate
+Google Chrome). This is a known launcher/model mismatch. Accept-Language reduction
+alone is not proof of leakage or even invalid browser behavior. The strict gate is
+kept unchanged but its security interpretation is explicitly limited.
+
+v5 deduplicates identical brand/version entries in an in-memory session copy and
+serializes ALL remaining brands to Sec-CH-UA; differing versions for one brand stop
+execution. The stored profile and UA/model versions are NOT changed. GREASE is not
+removed. No surface feature is disabled. The actual native/model version discrepancy
+and platform string remain unresolved. Full high-entropy server CH is not tested.
+
+Header reports now include allowlisted observations from before route.continue and
+Playwright's request.allHeaders alongside the echo response and JS. These are not
+packet captures and cannot by themselves identify every intermediary rewrite. The
+planned Accept-Language remains unchanged; no API is patched to force a green test.
+The diagnostic route continues stripping credential/cookie headers as in v4.
+
+Original experimental session data remains in ~/dx-experimental-sessions. Existing
+original launcher/export/extension paths are NOT repaired by this experiment.

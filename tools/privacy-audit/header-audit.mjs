@@ -39,15 +39,17 @@ export function assessHeaders(headers, js) {
   return {
     status:checks.some(c=>c.status==='FAIL')?'FAIL':checks.every(c=>c.status==='PASS')?'PASS':'UNKNOWN',
     checks,
-    scope:'Selected low-entropy request headers as reflected by third-party endpoint vs JS. Not TLS fingerprint or high-entropy opt-in verification.',
+    scope:'Strict selected-header equality policy; a mismatch is not proof of identity leakage. Reduced Accept-Language can be legitimate. Not TLS or high-entropy verification.',
   };
 }
 export async function runHeaderAudit(page) {
   const url='https://httpbin.org/anything/doppelx-audit?nonce='+randomUUID();
   // Avoid sending site cookies or HTTP authorization in the diagnostic request.
   // User-Agent and Client Hints are deliberately NOT rewritten by this probe.
+  let beforeRouteHeaders = null;
   const handler=async route=>{
     const headers={...route.request().headers()};
+    beforeRouteHeaders = selectHeaders(headers);
     for (const key of Object.keys(headers)) {
       if (['cookie','authorization','proxy-authorization'].includes(key.toLowerCase())) delete headers[key];
     }
@@ -65,8 +67,14 @@ export async function runHeaderAudit(page) {
     const js=await page.evaluate(()=>({ua:navigator.userAgent,languages:Array.from(navigator.languages),
       hints:navigator.userAgentData ? navigator.userAgentData.toJSON():null}));
     const headers=selectHeaders(echo.headers);
+    let playwrightRequestHeaders = null;
+    try {
+      playwrightRequestHeaders = selectHeaders(await response.request().allHeaders());
+    } catch { /* Optional observation; absence is not success evidence. */ }
     report={observedAt:new Date().toISOString(),endpoint:'https://httpbin.org',
-      receivedHeaders:headers,js,result:assessHeaders(headers,js)};
+      beforeRouteHeaders,playwrightRequestHeaders,receivedHeaders:headers,js,
+      observationNote:'Playwright header observations are not packet captures. Routing/intermediaries may influence the request.',
+      result:assessHeaders(headers,js)};
   } catch (error) {
     report={observedAt:new Date().toISOString(),endpoint:'https://httpbin.org',
       result:{status:'UNKNOWN',reason:'Echo measurement unavailable or unexpected response',errorType:error.name}};

@@ -8,6 +8,7 @@ import { buildRuntimeData } from './runtime-boundary.mjs';
 import { runRealmAudit } from './realm-audit.mjs';
 import { prepareModuleOrder } from './module-order.mjs';
 import { runHeaderAudit } from './header-audit.mjs';
+import { addSessionCoherence, prepareSessionProfile, buildSessionHeaders } from './session-coherence.mjs';
 import { prepareLegacySource, sha256, PHONE_RUNTIME_SHA256 } from './legacy-adapter.mjs';
 
 const args = process.argv.slice(2);
@@ -30,7 +31,7 @@ if (sha256(fs.readFileSync(runtime)) !== PHONE_RUNTIME_SHA256) {
 prepareModuleOrder(fs.readFileSync(runtime, 'utf8'));
 const auditMarker = '  const surface = await page.evaluate(async () => {';
 const runtimeRead = "const spoofSrc = fs.readFileSync(spoofPath, 'utf8');";
-const prepared = prepareLegacySource(fs.readFileSync(launcher, 'utf8'));
+const prepared = addSessionCoherence(prepareLegacySource(fs.readFileSync(launcher, 'utf8')));
 if (prepared.split(runtimeRead).length !== 2) throw new Error('Runtime read boundary mismatch');
 const executable = prepared
   .replace(runtimeRead, "const spoofSrc = prepareModuleOrder(fs.readFileSync(spoofPath, 'utf8'));")
@@ -40,6 +41,7 @@ const executable = prepared
     throw new Error('Realm audit failed or incomplete; see REALM GATES');
   }
   if (process.argv.includes('--headers')) {
+    console.log('SESSION HEADER POLICY:', JSON.stringify(extraHTTPHeaders));
     const headerGate = await runHeaderAudit(page);
     if (headerGate.status !== 'PASS') {
       await context.close();
@@ -51,8 +53,8 @@ const executable = prepared
 // root starts with empty browser storage; repeated experimental runs retain theirs.
 process.env.SESS_ROOT = path.join(home, 'dx-experimental-sessions');
 console.log('EXPERIMENTAL: separate browser storage; original files are unchanged.');
-console.log('Credential projection + module initialization order; globals and model defects remain.');
+console.log('Credential boundary + module order + deduplicated session brands; model version and platform remain unchanged.');
 const require = createRequire(launcher);
-new Function('require', 'buildRuntimeData', 'runRealmAudit', 'prepareModuleOrder', 'runHeaderAudit', executable)(
-  require, buildRuntimeData, runRealmAudit, prepareModuleOrder, runHeaderAudit,
+new Function('require', 'buildRuntimeData', 'runRealmAudit', 'prepareModuleOrder', 'runHeaderAudit', 'prepareSessionProfile', 'buildSessionHeaders', executable)(
+  require, buildRuntimeData, runRealmAudit, prepareModuleOrder, runHeaderAudit, prepareSessionProfile, buildSessionHeaders,
 );
