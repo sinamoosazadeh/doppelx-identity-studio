@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { buildRuntimeData } from './runtime-boundary.mjs';
+import { runRealmAudit } from './realm-audit.mjs';
 import { prepareLegacySource, sha256, PHONE_RUNTIME_SHA256 } from './legacy-adapter.mjs';
 
 const args = process.argv.slice(2);
@@ -23,11 +24,18 @@ const launcher = path.join(home, 'dx-runner/launch_active.js');
 if (sha256(fs.readFileSync(runtime)) !== PHONE_RUNTIME_SHA256) {
   throw new Error('Phone runtime hash mismatch; nothing launched');
 }
-const executable = prepareLegacySource(fs.readFileSync(launcher, 'utf8'));
+const auditMarker = '  const surface = await page.evaluate(async () => {';
+const executable = prepareLegacySource(fs.readFileSync(launcher, 'utf8'))
+  .replace(auditMarker, `  const realmGate = await runRealmAudit(page);
+  if (realmGate.parity !== 'PASS' || realmGate.credentialObjects !== 'PASS') {
+    await context.close();
+    throw new Error('Realm audit failed or incomplete; see REALM GATES');
+  }
+` + auditMarker);
 // Never use or copy the established session directories. This separate persistent
 // root starts with empty browser storage; repeated experimental runs retain theirs.
 process.env.SESS_ROOT = path.join(home, 'dx-experimental-sessions');
 console.log('EXPERIMENTAL: separate browser storage; original files are unchanged.');
 console.log('Credential projection only; global markers and model defects remain.');
 const require = createRequire(launcher);
-new Function('require', 'buildRuntimeData', executable)(require, buildRuntimeData);
+new Function('require', 'buildRuntimeData', 'runRealmAudit', executable)(require, buildRuntimeData, runRealmAudit);

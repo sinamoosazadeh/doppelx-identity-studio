@@ -61,3 +61,15 @@ Expected invocation on the reviewed phone, with hub and selected relay running:
 If hashes differ, stop and inspect; do not bypass the check. Never paste credentials
 into a command or issue report. Review logs before sharing. The final scoped message
 does not certify all-realm secrecy, anonymity or absence of network leakage.
+
+## v2 realm diagnostic
+
+The v2 wrapper runs selected navigator/UA-CH and named credential-object checks
+in main, blank iframe, classic Blob worker and module Blob worker. Errors and
+timeouts are explicit; a non-PASS gate closes the context and stops the scoped run.
+No additional external test site is contacted: probes run on the existing trace
+page. CSP or worker/runtime compatibility may cause an incomplete result.
+An iframe navigator is read from the parent; this is not an independent arbitrary
+iframe-script execution test. Equality of reported values does not prove that
+values are native/authentic. It is not a server-side header measurement.
+The same experimental session root is retained across v1/v2, not the original root.
