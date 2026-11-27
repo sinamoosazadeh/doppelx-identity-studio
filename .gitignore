@@ -1,0 +1,57 @@
+# Node / Playwright
+node_modules/
+.playwright/
+playwright-report/
+test-results/
+coverage/
+npm-debug.log*
+
+# Generated web/Android output
+doppel.html
+web/doppel.html
+android/build/
+android/dist/
+release/
+*.apk
+*.aab
+*.apks
+*.idsig
+*.sha256
+
+# Android / Java / IDE
+*.class
+*.dex
+*.aar
+*.iml
+.gradle/
+local.properties
+.idea/
+.vscode/
+
+# Signing and secrets — never commit release keys or local credentials
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+*.mobileprovision
+.env
+.env.*
+!*.example
+secrets/
+keystore/
+
+# Runtime data / device state
+*.db
+*.sqlite
+*.sqlite3
+*.log
+__pycache__/
+*.py[cod]
+.dx/
+dx-sessions/
+
+# OS files
+.DS_Store
+Thumbs.db

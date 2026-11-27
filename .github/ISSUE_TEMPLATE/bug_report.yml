@@ -1,0 +1,54 @@
+name: Bug report
+description: Report a reproducible non-security defect
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve DOPPEL X. Do not include passwords, keys,
+        user profiles, or third-party targets. For security issues, use the
+        private reporting process in SECURITY.md instead.
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      placeholder: "v3.2.1 or abc1234"
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Android native shell
+        - Android offline assets
+        - Browser companion
+        - Build/release tooling
+        - Documentation
+        - Termux:X11 display helper
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Use a local, authorised scenario only.
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitised logs or screenshots
+      description: Remove personal data, credentials, keys, profile exports, and device identifiers.

@@ -1,0 +1,12 @@
+DOPPEL X Identity Studio
+Copyright © 2026 DOPPEL X contributors
+
+This repository is an independently maintained, source-only QA release. It is
+not affiliated with or endorsed by browser vendors, Android, Termux, Playwright,
+Puppeteer, Selenium, Chromium, or any third-party service referenced in user
+created exports.
+
+The repository intentionally excludes private signing material, release
+binaries, user profiles, relay credentials, third-party accounts, and the
+legacy network/relay/harvesting component. See docs/PROVENANCE.md and
+docs/ADR-001-PUBLIC-RELEASE-BOUNDARY.md.

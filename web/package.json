@@ -1,0 +1,12 @@
+{
+  "name": "doppelx-web-companion",
+  "version": "3.2.1",
+  "private": true,
+  "type": "module",
+  "description": "Offline browser companion for DOPPEL X profile QA fixtures.",
+  "scripts": {
+    "build": "node tools/build.js",
+    "test:core": "node tools/test-core.mjs",
+    "test:ui": "node tools/test-ui.mjs"
+  }
+}
