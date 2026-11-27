@@ -97,3 +97,27 @@ redacts upstream logging and adds a scoped page-payload boundary check. It uses 
 separate experimental session root, not a copy of existing browser data. No phone
 execution is claimed. Runtime globals and existing model defects intentionally
 remain visible; this is a credential-boundary experiment, not the completed plan.
+
+## Integrated managed suite (first physical-device run pending)
+
+Added managed-runner rather than further replacing small experimental versions.
+It coordinates managed launches using one exclusive lock, checks for observable
+project browser processes, closes contexts on signals/errors, and persists private
+per-profile JSON reports. --all tests profiles sequentially but never reassigns an
+old identity to the currently active exit. Wrong exits block target navigation.
+A global relay is still shared and cannot be made safe against arbitrary external
+changes by a standalone launcher; no atomic-switch guarantee is asserted.
+
+The Chrome-family session copy can bind its claimed version to the installed
+Chromium binary without updating stored data. Brand/OS authenticity and all-engine
+compatibility are not claimed. Existing experimental sessions and selected zoom
+are retained; fresh scratch contexts only test storage mechanisms. Original launcher,
+hub, acquisition UI and exports remain unchanged, not implicitly hardened.
+
+Synthetic subprocess integration covers sequential context closure, reports,
+exit mismatch, lock release and SIGINT cleanup. Current phone evidence remains the
+user-run v1-v6 results; none of the managed-runner integration tests are reported
+as physical-device operational tests. Comprehensive no-leak, WebRTC, other realms
+and full capability regression gates stay UNKNOWN. Strict language mismatch stays
+visible. Downloads contain only source and are checked against a SHA256 manifest,
+with text member/path/suffix/size checks instead of blanket binary exclusions.

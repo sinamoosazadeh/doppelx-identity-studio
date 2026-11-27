@@ -82,5 +82,6 @@ export async function runHeaderAudit(page) {
     await page.unroute(url,handler);
   }
   console.log('SERVER HEADER AUDIT:',JSON.stringify(report,null,2));
-  return report.result;
+  const {result,...observations}=report;
+  return {...result,observations};
 }

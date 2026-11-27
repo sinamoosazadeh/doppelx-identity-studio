@@ -19,7 +19,8 @@
     "build:preview": "node android/tools/build-preview.mjs",
     "test:android": "node android/tools/test-suite.mjs",
     "test:android:preview": "node android/tools/test-suite.mjs preview",
-    "test": "npm run verify:source && npm run test:web:core && npm run build:web && npm run test:web:ui && npm run build:preview && npm run test:android && npm run test:android:preview",
+    "test:privacy-audit": "node --test tools/privacy-audit/*.test.mjs && python3 -m unittest discover -s scripts -p test_source_archive_check.py",
+    "test": "npm run verify:source && npm run test:privacy-audit && npm run test:web:core && npm run build:web && npm run test:web:ui && npm run build:preview && npm run test:android && npm run test:android:preview",
     "archive:source": "bash scripts/create-source-archive.sh"
   },
   "devDependencies": {

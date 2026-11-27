@@ -15,13 +15,14 @@ function walk(dir) {
     const file = path.join(dir, name);
     const stat = statSync(file);
     if (stat.isDirectory()) walk(file);
-    else if (stat.isFile() && /\.(?:js|mjs)$/.test(name)) files.push(file);
+    else if (stat.isFile() && /\.(?:js|mjs|cjs)$/.test(name)) files.push(file);
   }
 }
 
 walk(path.join(root, 'android'));
 walk(path.join(root, 'web'));
 walk(path.join(root, 'scripts'));
+walk(path.join(root, 'tools'));
 
 let failures = 0;
 for (const file of files.sort()) {

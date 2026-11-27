@@ -6,6 +6,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from source_archive_check import validate_source_zip
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -59,7 +60,9 @@ for label, ok in checks.items():
 
 forbidden_suffixes = {".apk", ".aab", ".idsig", ".jks", ".keystore", ".p12", ".pem", ".key"}
 allowed_binary_images = {".png", ".jpg", ".jpeg", ".svg"}
-generated_parts = {".git", "node_modules", "build", "dist", "release", "coverage", "test-results"}
+generated_parts = {".git", "node_modules", "build", "dist", "release", "coverage", "test-results", "__pycache__"}
+archive_manifest_path = ROOT / 'downloads' / 'source-manifest.json'
+archive_manifest = json.loads(archive_manifest_path.read_text()) if archive_manifest_path.is_file() else {}
 for file in ROOT.rglob("*"):
     if not file.is_file() or generated_parts.intersection(file.relative_to(ROOT).parts):
         continue
@@ -68,9 +71,12 @@ for file in ROOT.rglob("*"):
     if file.suffix.lower() in allowed_binary_images:
         continue
     try:
-        contents = file.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        fail(f"unexpected binary file in source tree: {file.relative_to(ROOT)}")
+        if file.parent == ROOT / 'downloads' and file.suffix == '.zip':
+            contents = '\n'.join(validate_source_zip(file, archive_manifest.get(file.name)))
+        else:
+            contents = file.read_text(encoding="utf-8")
+    except (ValueError, OSError) as error:
+        fail(f"invalid source file/archive: {file.relative_to(ROOT)} ({type(error).__name__})")
     legacy_password_marker = "doppelx-" + "2026"
     legacy_keystore_marker = "doppelx-" + "release.jks"
     if legacy_password_marker in contents or legacy_keystore_marker in contents:

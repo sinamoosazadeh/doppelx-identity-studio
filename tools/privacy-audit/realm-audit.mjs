@@ -74,5 +74,5 @@ export async function runRealmAudit(page) {
   console.log('REALM AUDIT:',JSON.stringify(report,null,2));
   const result = assessRealms(report);
   console.log('REALM GATES:',JSON.stringify(result,null,2));
-  return result;
+  return {...result,observations:report};
 }
