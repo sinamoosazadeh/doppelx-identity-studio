@@ -73,3 +73,25 @@ An iframe navigator is read from the parent; this is not an independent arbitrar
 iframe-script execution test. Equality of reported values does not prove that
 values are native/authentic. It is not a server-side header measurement.
 The same experimental session root is retained across v1/v2, not the original root.
+
+## v3 module-order experiment
+
+The user-run v2 audit passed named credential-object checks but failed module
+Blob worker parity. The module worker reported Linux x86_64 and different UA-CH
+and languages; this is not proof that the physical phone is x86_64 or that its real
+IP leaked. Existing static import executes module dependencies before the bootstrap
+body, regardless of its textual position. This accounts for a target observing
+pre-installation values even with the profile global already set in the worker.
+
+v3 changes exactly the reviewed module bootstrap return line, in memory, to
+`await import(...)` after initialization. No changes to the original runtime file,
+classic importScripts path, SharedWorker constructor path, stored UA/brands,
+platform model, or other surface settings. Module SharedWorker behavior is not
+yet phone-tested. CSP, async import errors, top-level await and worker startup
+behavior still require operational regression tests; a unit test is not enough.
+
+Native Node ES module tests reproduce the pre-bootstrap static-import observation
+and verify ordered dynamic-import observation. They do NOT simulate Android worker
+loading, browser security policies or the complete runtime installation. Run the
+same four-realm phone audit to evaluate the attempted fix. Global markers remain
+and cannot be treated as undetectable. Model 156/native engine 158 remains unresolved.

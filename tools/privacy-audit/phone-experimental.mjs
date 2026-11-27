@@ -6,6 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { buildRuntimeData } from './runtime-boundary.mjs';
 import { runRealmAudit } from './realm-audit.mjs';
+import { prepareModuleOrder } from './module-order.mjs';
 import { prepareLegacySource, sha256, PHONE_RUNTIME_SHA256 } from './legacy-adapter.mjs';
 
 const args = process.argv.slice(2);
@@ -24,8 +25,14 @@ const launcher = path.join(home, 'dx-runner/launch_active.js');
 if (sha256(fs.readFileSync(runtime)) !== PHONE_RUNTIME_SHA256) {
   throw new Error('Phone runtime hash mismatch; nothing launched');
 }
+// Validate transformation before any browser is launched.
+prepareModuleOrder(fs.readFileSync(runtime, 'utf8'));
 const auditMarker = '  const surface = await page.evaluate(async () => {';
-const executable = prepareLegacySource(fs.readFileSync(launcher, 'utf8'))
+const runtimeRead = "const spoofSrc = fs.readFileSync(spoofPath, 'utf8');";
+const prepared = prepareLegacySource(fs.readFileSync(launcher, 'utf8'));
+if (prepared.split(runtimeRead).length !== 2) throw new Error('Runtime read boundary mismatch');
+const executable = prepared
+  .replace(runtimeRead, "const spoofSrc = prepareModuleOrder(fs.readFileSync(spoofPath, 'utf8'));")
   .replace(auditMarker, `  const realmGate = await runRealmAudit(page);
   if (realmGate.parity !== 'PASS' || realmGate.credentialObjects !== 'PASS') {
     await context.close();
@@ -36,6 +43,8 @@ const executable = prepareLegacySource(fs.readFileSync(launcher, 'utf8'))
 // root starts with empty browser storage; repeated experimental runs retain theirs.
 process.env.SESS_ROOT = path.join(home, 'dx-experimental-sessions');
 console.log('EXPERIMENTAL: separate browser storage; original files are unchanged.');
-console.log('Credential projection only; global markers and model defects remain.');
+console.log('Credential projection + module initialization order; globals and model defects remain.');
 const require = createRequire(launcher);
-new Function('require', 'buildRuntimeData', 'runRealmAudit', executable)(require, buildRuntimeData, runRealmAudit);
+new Function('require', 'buildRuntimeData', 'runRealmAudit', 'prepareModuleOrder', executable)(
+  require, buildRuntimeData, runRealmAudit, prepareModuleOrder,
+);
