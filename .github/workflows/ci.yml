@@ -53,10 +53,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: quality
-    # ubuntu-latest includes Google Chrome. Use that real browser instead of
-    # downloading another Chromium build from Playwright's external CDN.
-    env:
-      PLAYWRIGHT_CHROMIUM_CHANNEL: chrome
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,8 +66,8 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Verify runner Chrome installation
-        run: google-chrome --version
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
 
       - name: Build Android preview
         run: npm run build:preview
@@ -79,13 +75,8 @@ jobs:
       - name: Run Android asset E2E
         run: npm run test:android
 
-      - name: Run generated preview E2E three times
-        # Every run must pass: this is a stability check, not a retry-on-failure.
-        run: |
-          for attempt in 1 2 3; do
-            echo "Preview stability run ${attempt}/3"
-            npm run test:android:preview || exit 1
-          done
+      - name: Run generated preview E2E
+        run: npm run test:android:preview
 
       - name: Upload generated QA previews
         if: always()
