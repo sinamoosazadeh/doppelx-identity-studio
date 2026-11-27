@@ -31,6 +31,15 @@ const INDEX = arg && arg.includes('preview')
 const results = [];
 const errors = [];
 
+// Keep failures readable through the Checks API even when full runner logs
+// cannot be downloaded. Escape workflow-command data, never suppress errors.
+function annotate(message) {
+  if (process.env.GITHUB_ACTIONS !== 'true') return;
+  const escaped = String(message).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+  console.log(`::error title=Browser QA::${escaped}`);
+}
+process.on('uncaughtExceptionMonitor', (error) => annotate(error.stack || error.message));
+
 function ok(name, cond, detail) {
   results.push({ name, ok: !!cond, detail: detail || '' });
   if (!cond) errors.push(name + (detail ? ' — ' + detail : ''));
@@ -107,7 +116,9 @@ ok('lab: on-device self-test all pass', stMatch && stMatch[1] === stMatch[2], se
 /* -------------------------------------------------------- runtime sandbox */
 await page.selectOption('#sb-p', { index: 0 });
 await page.click('#lab-sandbox');
-await page.waitForTimeout(2200);
+await page.waitForFunction(() =>
+  document.querySelector('#sb-out table') || document.querySelector('#sb-out .note'),
+  undefined, { timeout: 12000 });
 const sandbox = await page.evaluate(() => {
   const rows = [...document.querySelectorAll('#sb-out table tr')].map((r) => [...r.querySelectorAll('td')].map((c) => c.textContent.trim())).filter((r) => r.length === 3);
   return { rows, pill: document.querySelector('#sb-out .pill')?.textContent || '' };
@@ -122,13 +133,17 @@ ok('sandbox: all surfaces match the profile', sbBad.length === 0, JSON.stringify
 
 /* --------------------------------------------------------------- fuzzer */
 await page.click('#lab-fuzz');
-await page.waitForTimeout(1600);
+await page.waitForFunction(() =>
+  /still dirty after repair/.test(document.querySelector('#fuzz-out')?.textContent || ''),
+  undefined, { timeout: 15000 });
 const fuzz = await page.evaluate(() => document.querySelector('#fuzz-out')?.innerText || '');
 ok('fuzzer: 200/200 restored to clean audit', /200 \/ 200/.test(fuzz.replace(/\s+/g, ' ')), fuzz.replace(/\s+/g, ' ').slice(0, 120));
 
 /* ---------------------------------------------------------------- bench */
 await page.click('#lab-bench');
-await page.waitForTimeout(1100);
+await page.waitForFunction(() =>
+  /1000 profiles/.test(document.querySelector('#lab-out .pill')?.textContent || ''),
+  undefined, { timeout: 15000 });
 const bench = await page.evaluate(() => document.querySelector('#lab-out')?.innerText || '');
 ok('bench: 1000 profiles generated', /1000 profiles/.test(bench));
 
@@ -214,5 +229,8 @@ const pass = results.filter((r) => r.ok).length;
 console.log('\nDOPPEL X — headless suite');
 results.forEach((r) => console.log(`${r.ok ? '  ✓' : '  ✗'} ${r.name}${r.detail && !r.ok ? '  [' + r.detail + ']' : ''}`));
 console.log(`\n${pass}/${results.length} passed`);
-if (errors.length) { console.log('\nERRORS:\n' + errors.join('\n')); }
+if (errors.length) {
+  console.log('\nERRORS:\n' + errors.join('\n'));
+  errors.forEach(annotate);
+}
 process.exit(pass === results.length && errors.length === 0 ? 0 : 1);
