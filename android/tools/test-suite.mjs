@@ -31,6 +31,15 @@ const INDEX = arg && arg.includes('preview')
 const results = [];
 const errors = [];
 
+// Keep failures readable through the Checks API even when full runner logs
+// cannot be downloaded. Escape workflow-command data, never suppress errors.
+function annotate(message) {
+  if (process.env.GITHUB_ACTIONS !== 'true') return;
+  const escaped = String(message).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+  console.log(`::error title=Browser QA::${escaped}`);
+}
+process.on('uncaughtExceptionMonitor', (error) => annotate(error.stack || error.message));
+
 function ok(name, cond, detail) {
   results.push({ name, ok: !!cond, detail: detail || '' });
   if (!cond) errors.push(name + (detail ? ' — ' + detail : ''));
@@ -214,5 +223,8 @@ const pass = results.filter((r) => r.ok).length;
 console.log('\nDOPPEL X — headless suite');
 results.forEach((r) => console.log(`${r.ok ? '  ✓' : '  ✗'} ${r.name}${r.detail && !r.ok ? '  [' + r.detail + ']' : ''}`));
 console.log(`\n${pass}/${results.length} passed`);
-if (errors.length) { console.log('\nERRORS:\n' + errors.join('\n')); }
+if (errors.length) {
+  console.log('\nERRORS:\n' + errors.join('\n'));
+  errors.forEach(annotate);
+}
 process.exit(pass === results.length && errors.length === 0 ? 0 : 1);
