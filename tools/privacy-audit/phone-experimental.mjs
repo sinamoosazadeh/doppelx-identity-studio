@@ -8,6 +8,7 @@ import { buildRuntimeData } from './runtime-boundary.mjs';
 import { runRealmAudit } from './realm-audit.mjs';
 import { prepareModuleOrder } from './module-order.mjs';
 import { runHeaderAudit } from './header-audit.mjs';
+import { addStorageAudit, runStorageAudit } from './storage-audit.mjs';
 import { addSessionCoherence, prepareSessionProfile, buildSessionHeaders } from './session-coherence.mjs';
 import { prepareLegacySource, sha256, PHONE_RUNTIME_SHA256 } from './legacy-adapter.mjs';
 
@@ -17,6 +18,7 @@ if (index < 0 || !/^prf_[a-zA-Z0-9]+$/.test(args[index + 1] || '')) {
   throw new Error('An exact --profile prf_... ID is required');
 }
 if (args.includes('--allow-direct')) throw new Error('Direct fallback is not allowed in this experiment');
+if (args.includes('--storage') && args.includes('--keep')) throw new Error('Sequential storage audit requires closing the active context; omit --keep');
 // Disallow environment-based redirection to an unreviewed runtime/hub/session.
 for (const name of ['DX_ROOT','RUNNER_DIR','PW_CORE','DOPPELX_HUB','SESS_ROOT']) {
   if (process.env[name]) throw new Error(`Unset ${name} before this controlled experiment`);
@@ -54,7 +56,8 @@ const executable = prepared
 process.env.SESS_ROOT = path.join(home, 'dx-experimental-sessions');
 console.log('EXPERIMENTAL: separate browser storage; original files are unchanged.');
 console.log('Credential boundary + module order + deduplicated session brands; model version and platform remain unchanged.');
+console.log('Header equality remains unresolved unless separately measured; a storage result does not clear it.');
 const require = createRequire(launcher);
-new Function('require', 'buildRuntimeData', 'runRealmAudit', 'prepareModuleOrder', 'runHeaderAudit', 'prepareSessionProfile', 'buildSessionHeaders', executable)(
-  require, buildRuntimeData, runRealmAudit, prepareModuleOrder, runHeaderAudit, prepareSessionProfile, buildSessionHeaders,
+new Function('require', 'buildRuntimeData', 'runRealmAudit', 'prepareModuleOrder', 'runHeaderAudit', 'prepareSessionProfile', 'buildSessionHeaders', 'runStorageAudit', addStorageAudit(executable))(
+  require, buildRuntimeData, runRealmAudit, prepareModuleOrder, runHeaderAudit, prepareSessionProfile, buildSessionHeaders, runStorageAudit,
 );

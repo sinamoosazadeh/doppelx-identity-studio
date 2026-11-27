@@ -141,3 +141,33 @@ The diagnostic route continues stripping credential/cookie headers as in v4.
 
 Original experimental session data remains in ~/dx-experimental-sessions. Existing
 original launcher/export/extension paths are NOT repaired by this experiment.
+
+## v6 sequential storage canaries and exact-version source review
+
+User reports playwright-core 1.65.1. Official v1.65.1 Chromium implementation was
+retrieved through GitHub and reviewed around _updateUserAgent (1097-1103):
+https://github.com/microsoft/playwright/blob/v1.65.1/packages/playwright-core/src/server/chromium/crPage.ts#L1097-L1103
+It sends acceptLanguage: options.locale. This supports the observed de-DE header;
+it does not independently prove the installed package has no local modifications.
+No language setting or equality gate was changed. Strict language equality remains
+unresolved; running another independent gate does not certify it.
+
+`--storage` runs AFTER the main experimental context closes. Four sequential
+launches (A, B, A, B) use two NEW persistent directories, identical launch settings
+and the same sanitized init script. A locally fulfilled synthetic HTTPS origin
+is used; its canary page does not require a real external DNS/TLS server. Each
+context closes before the next opens. Unique canaries measure localStorage,
+persistent JavaScript cookie, IndexedDB and Cache Storage write/read, separation
+and close/reopen persistence. Missing APIs/errors/timeouts are not passes.
+
+This is a mechanism-level scratch test, NOT proof for existing saved profiles,
+service workers, browser HTTP cache, OS-level isolation, or atomic proxy switching.
+The generated run directory under ~/dx-storage-audits is retained and printed;
+no existing profile or session directory is opened or deleted by this subtest.
+Browser startup may still have background networking; no no-network claim is made.
+The wrapper still first contacts Cloudflare for exit verification. With --storage
+alone, httpbin is not contacted and the header gate is not run or cleared.
+
+Use: `HEADED=0 node phone-experimental.mjs --profile prf_295f546cd0e8 --storage`
+Do not combine with --keep. The result is separate STORAGE AUDIT output.
+Unit tests of the sequencing driver are synthetic; phone results remain required.
