@@ -116,7 +116,9 @@ ok('lab: on-device self-test all pass', stMatch && stMatch[1] === stMatch[2], se
 /* -------------------------------------------------------- runtime sandbox */
 await page.selectOption('#sb-p', { index: 0 });
 await page.click('#lab-sandbox');
-await page.waitForTimeout(2200);
+await page.waitForFunction(() =>
+  document.querySelector('#sb-out table') || document.querySelector('#sb-out .note'),
+  undefined, { timeout: 12000 });
 const sandbox = await page.evaluate(() => {
   const rows = [...document.querySelectorAll('#sb-out table tr')].map((r) => [...r.querySelectorAll('td')].map((c) => c.textContent.trim())).filter((r) => r.length === 3);
   return { rows, pill: document.querySelector('#sb-out .pill')?.textContent || '' };
@@ -131,13 +133,17 @@ ok('sandbox: all surfaces match the profile', sbBad.length === 0, JSON.stringify
 
 /* --------------------------------------------------------------- fuzzer */
 await page.click('#lab-fuzz');
-await page.waitForTimeout(1600);
+await page.waitForFunction(() =>
+  /still dirty after repair/.test(document.querySelector('#fuzz-out')?.textContent || ''),
+  undefined, { timeout: 15000 });
 const fuzz = await page.evaluate(() => document.querySelector('#fuzz-out')?.innerText || '');
 ok('fuzzer: 200/200 restored to clean audit', /200 \/ 200/.test(fuzz.replace(/\s+/g, ' ')), fuzz.replace(/\s+/g, ' ').slice(0, 120));
 
 /* ---------------------------------------------------------------- bench */
 await page.click('#lab-bench');
-await page.waitForTimeout(1100);
+await page.waitForFunction(() =>
+  /1000 profiles/.test(document.querySelector('#lab-out .pill')?.textContent || ''),
+  undefined, { timeout: 15000 });
 const bench = await page.evaluate(() => document.querySelector('#lab-out')?.innerText || '');
 ok('bench: 1000 profiles generated', /1000 profiles/.test(bench));
 

@@ -79,8 +79,13 @@ jobs:
       - name: Run Android asset E2E
         run: npm run test:android
 
-      - name: Run generated preview E2E
-        run: npm run test:android:preview
+      - name: Run generated preview E2E three times
+        # Every run must pass: this is a stability check, not a retry-on-failure.
+        run: |
+          for attempt in 1 2 3; do
+            echo "Preview stability run ${attempt}/3"
+            npm run test:android:preview || exit 1
+          done
 
       - name: Upload generated QA previews
         if: always()
