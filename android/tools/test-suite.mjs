@@ -36,7 +36,10 @@ function ok(name, cond, detail) {
   if (!cond) errors.push(name + (detail ? ' — ' + detail : ''));
 }
 
-const browser = await chromium.launch();
+// CI can use the Chrome already installed on the runner. Local runs retain
+// Playwright's pinned Chromium by default; no tests are skipped in either mode.
+const channel = process.env.PLAYWRIGHT_CHROMIUM_CHANNEL;
+const browser = await chromium.launch(channel ? { channel } : {});
 const ctx = await browser.newContext({ viewport: { width: 412, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const page = await ctx.newPage();
 page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
